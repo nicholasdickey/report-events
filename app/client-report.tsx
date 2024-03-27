@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import useSWRInfinite from 'swr/infinite'
-import { FetchReportKey, fetchReport } from "@/lib/api";
+import { FetchReportKey, fetchReport,StatsReportKey, fetchStatsReport } from "@/lib/api";
 import ReportItem from "@/components/func-components/report-item";
+import ReportStatsItem from "@/components/func-components/report-stats-item";
 import LoadMore from "@/components/func-components/load-more";
 
 export default function Home() {
@@ -11,9 +12,10 @@ export default function Home() {
     const [target, setTarget] = useState<string>("qwiket");
     const [bot, setBot] = useState<boolean>(false);
     const [min, setMin] = useState<number>(0);
-    console.log("bot=", bot)
+    const [stats, setStats] = useState<boolean>(false);
+   // console.log("bot=", bot)
     const fetchReportKey = (pageIndex: number, previousPageData: any): FetchReportKey | null => {
-        let key: FetchReportKey = { target, page: pageIndex, bot,min };
+        let key: FetchReportKey = { target, page: pageIndex, bot,min,stats };
         if (previousPageData && !previousPageData.length) return null // reached the end
         return key;
     }
@@ -30,7 +32,7 @@ export default function Home() {
             for (const key in sub) {
                 const item = sub[key];
                 const { sessionid, items } = item
-                itemsAll.push(ReportItem(expanded, setExpanded, item, bot))
+                itemsAll.push(stats?ReportStatsItem(expanded,setExpanded,item):ReportItem(expanded, setExpanded, item, bot))
             }
         };
     const isLoadingMore =
@@ -60,6 +62,10 @@ export default function Home() {
                             <input onChange={(event) => { console.log("setFilter=", event.target.value); setMin(+event.target.value) }} id="min-events" type="text" value={min} className="w-12 h-7 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
                             <label htmlFor="disabled-checkbox" className="ms-2 text-sm font-medium text-gray-400 dark:text-gray-500">Minimum Events</label>
                         </div>
+                        <div className="flex items-center mb-4 mt-4">
+                            <input onChange={(event) => { console.log("setStats=", event.target.checked); setStats(event.target.checked ? true : false) }} id="include-bots" type="checkbox" value="" className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" />
+                            <label htmlFor="disabled-checkbox" className="ms-2 text-sm font-medium text-gray-400 dark:text-gray-500">Stats Report</label>
+                        </div>
                     </form>
                     <div className="clear-both"></div>
 
@@ -67,7 +73,7 @@ export default function Home() {
                 </div>
                 <div className="MainContent basis-4/5 ">
                     <table className=" p-4">
-                        <thead className="h-16"><tr><th className="w-1/5">Timestamp</th><th className="w-3/5">Item</th><th className="w-1/5">Count</th></tr></thead>
+                        <thead className="h-16"><tr><th className="w-1/5" colSpan={stats&&expanded?1:1}>Timestamp</th><th className="w-3/5" >{stats?'Duration':'Item'}</th><th className="w-1/5">{stats?'Intervals':'Count'}</th>{stats&&<th>Events</th>}{stats&&<th>Sessionid</th>}</tr></thead>
                         {itemsAll}
                     </table>
                     
